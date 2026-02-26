@@ -7,67 +7,78 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
     body {
-      font-family: 'DM Sans', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00B8D4 0%, #0066CC 100%);
       min-height: 100vh;
     }
-    .mono {
-      font-family: 'Space Mono', monospace;
-    }
+    
     .glass {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: white;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
-    .glass-white {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
+    
     .card-hover {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    
     .card-hover:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     }
+    
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
     .fade-in {
       animation: fadeIn 0.5s ease-out;
     }
+    
     .status-badge {
       display: inline-block;
-      padding: 4px 12px;
+      padding: 5px 12px;
       border-radius: 12px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .status-idé { background: #FEF3C7; color: #92400E; }
-    .status-planlagt { background: #DBEAFE; color: #1E40AF; }
-    .status-afholdt { background: #D1FAE5; color: #065F46; }
+    
+    .status-idé { background: #FFF3E0; color: #E65100; }
+    .status-planlagt { background: #E3F2FD; color: #1565C0; }
+    .status-afholdt { background: #E8F5E9; color: #2E7D32; }
+    
+    .cat-arbejdsmiljø { background: linear-gradient(135deg, #80CBC4 0%, #4DB6AC 100%); }
+    .cat-karriere { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); }
+    .cat-uddannelse { background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); }
+    .cat-tech { background: linear-gradient(135deg, #0066CC 0%, #0D47A1 100%); }
+    .cat-markedsføring { background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%); }
+    .cat-andet { background: linear-gradient(135deg, #9E9E9E 0%, #616161 100%); }
+    
     .checkbox-custom {
       appearance: none;
       width: 20px;
       height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.5);
+      border: 2px solid #00B8D4;
       border-radius: 4px;
       cursor: pointer;
       position: relative;
-      background: rgba(255, 255, 255, 0.1);
+      background: white;
     }
+    
     .checkbox-custom:checked {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: #667eea;
+      background: #00B8D4;
     }
+    
     .checkbox-custom:checked::after {
       content: '✓';
       position: absolute;
@@ -78,40 +89,74 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    .btn-hk {
+      background: linear-gradient(135deg, #00B8D4 0%, #0066CC 100%);
       color: white;
       font-weight: 600;
       padding: 12px 24px;
-      border-radius: 12px;
+      border-radius: 8px;
       transition: all 0.3s;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 184, 212, 0.3);
     }
-    .btn-primary:hover {
+    
+    .btn-hk:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 184, 212, 0.4);
     }
+    
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: white;
+      color: #0066CC;
+      border: 2px solid #0066CC;
       font-weight: 600;
-      padding: 12px 24px;
-      border-radius: 12px;
+      padding: 10px 20px;
+      border-radius: 8px;
       transition: all 0.3s;
       cursor: pointer;
     }
+    
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.3);
-      border-color: rgba(255, 255, 255, 0.6);
+      background: #0066CC;
+      color: white;
     }
+    
+    .hk-header {
+      background: white;
+      border-bottom: 4px solid #00B8D4;
+    }
+    
     .table-row {
       transition: all 0.2s;
     }
+    
     .table-row:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: #F5F5F5;
+    }
+
+    .nav-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .nav-btn.active {
+      background: white;
+      color: #0066CC;
+      border-color: #00B8D4;
+    }
+
+    .nav-btn:not(.active) {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .nav-btn:not(.active):hover {
+      background: rgba(255, 255, 255, 0.3);
     }
   </style>
 </head>
@@ -122,12 +167,12 @@
     const { useState, useEffect, useMemo } = React;
 
     const CATEGORIES = {
-      'Arbejdsmiljø': { color: 'from-cyan-400 to-blue-500', icon: '🧘' },
-      'Karriere': { color: 'from-orange-400 to-pink-500', icon: '🚀' },
-      'Uddannelse': { color: 'from-green-400 to-emerald-500', icon: '📚' },
-      'Tech': { color: 'from-purple-400 to-indigo-500', icon: '💻' },
-      'Markedsføring': { color: 'from-red-400 to-rose-500', icon: '📢' },
-      'Andet': { color: 'from-gray-400 to-slate-500', icon: '✨' }
+      'Arbejdsmiljø': { color: 'cat-arbejdsmiljø', icon: '🧘' },
+      'Karriere': { color: 'cat-karriere', icon: '🚀' },
+      'Uddannelse': { color: 'cat-uddannelse', icon: '📚' },
+      'Tech': { color: 'cat-tech', icon: '💻' },
+      'Markedsføring': { color: 'cat-markedsføring', icon: '📢' },
+      'Andet': { color: 'cat-andet', icon: '✨' }
     };
 
     const INITIAL_DATA = {
@@ -343,7 +388,7 @@
       const addCategory = (categoryName) => {
         const newCategories = {
           ...categories,
-          [categoryName]: { color: 'from-indigo-400 to-purple-500', icon: '📁' }
+          [categoryName]: { color: 'cat-andet', icon: '📁' }
         };
         const newData = { ...data, [categoryName]: [] };
         saveData(newData, newCategories);
@@ -472,46 +517,43 @@
       if (loading) {
         return (
           <div className="min-h-screen flex items-center justify-center">
-            <div className="text-white text-2xl mono">Indlæser...</div>
+            <div className="text-white text-2xl font-semibold">Indlæser...</div>
           </div>
         );
       }
 
       return (
-        <div className="min-h-screen p-6">
+        <div className="min-h-screen p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="glass rounded-3xl p-8 mb-6 fade-in">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-5xl font-bold text-white mb-2">Webinar Vidensbank</h1>
-                  <p className="text-white/80 text-lg">Faglige arrangementer og webinarer</p>
+            <div className="hk-header rounded-2xl p-6 mb-6 fade-in">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center text-white text-3xl font-bold">
+                    HK
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-800">Webinar Vidensbank</h1>
+                    <p className="text-gray-600">Faglige arrangementer og webinarer</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl font-bold text-white mono">{stats.totalIdeas}</div>
-                  <div className="text-white/80">ideer i alt</div>
+                  <div className="text-4xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">{stats.totalIdeas}</div>
+                  <div className="text-gray-600 text-sm">ideer i alt</div>
                 </div>
               </div>
               
               {/* Navigation */}
-              <div className="flex flex-wrap gap-3 mt-6">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => { setView('overview'); setSelectedCategory(null); setSelectedItems(new Set()); }}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                    view === 'overview' 
-                      ? 'bg-white text-purple-600 shadow-lg' 
-                      : 'bg-white/20 text-white hover:bg-white/30'
-                  }`}
+                  className={`nav-btn ${view === 'overview' ? 'active' : ''}`}
                 >
                   📊 Overblik
                 </button>
                 <button
                   onClick={() => { setView('all'); setSelectedCategory(null); setSelectedItems(new Set()); }}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                    view === 'all' 
-                      ? 'bg-white text-purple-600 shadow-lg' 
-                      : 'bg-white/20 text-white hover:bg-white/30'
-                  }`}
+                  className={`nav-btn ${view === 'all' ? 'active' : ''}`}
                 >
                   🔍 Alle ideer
                 </button>
@@ -519,18 +561,15 @@
                   <button
                     key={cat}
                     onClick={() => { setView('category'); setSelectedCategory(cat); setSelectedItems(new Set()); }}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                      selectedCategory === cat 
-                        ? 'bg-white text-purple-600 shadow-lg' 
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
+                    className={`nav-btn ${selectedCategory === cat ? 'active' : ''}`}
                   >
                     {categories[cat].icon} {cat}
                   </button>
                 ))}
                 <button
                   onClick={() => setShowNewCategoryModal(true)}
-                  className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:shadow-lg transition-all"
+                  className="nav-btn"
+                  style={{background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)', color: 'white', border: 'none'}}
                 >
                   ➕ Ny kategori
                 </button>
@@ -538,18 +577,18 @@
 
               {/* Selection toolbar */}
               {selectedItems.size > 0 && (
-                <div className="mt-4 p-4 bg-white/20 rounded-xl flex items-center justify-between">
-                  <span className="font-semibold text-white">{selectedItems.size} ideer valgt</span>
+                <div className="mt-4 p-4 bg-cyan-50 rounded-xl border-2 border-cyan-200 flex items-center justify-between">
+                  <span className="font-semibold text-cyan-900">{selectedItems.size} ideer valgt</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowMoveModal(true)}
-                      className="px-6 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:shadow-lg transition-all"
+                      className="btn-hk"
                     >
                       📁 Flyt til kategori
                     </button>
                     <button
                       onClick={() => setSelectedItems(new Set())}
-                      className="px-6 py-2 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-all"
+                      className="btn-secondary"
                     >
                       Ryd valg
                     </button>
@@ -560,7 +599,7 @@
 
             {/* Overview */}
             {view === 'overview' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
                 {Object.entries(categories).map(([category, config]) => {
                   const items = data[category] || [];
                   const statusCounts = items.reduce((acc, item) => {
@@ -572,25 +611,28 @@
                     <div
                       key={category}
                       onClick={() => { setView('category'); setSelectedCategory(category); }}
-                      className="glass rounded-2xl p-6 cursor-pointer card-hover"
+                      className="rounded-xl p-5 cursor-pointer card-hover"
+                      style={{background: 'white', border: '1px solid #e5e7eb'}}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <div className="text-4xl">{config.icon}</div>
-                        <div className="text-3xl font-bold text-white mono">{items.length}</div>
+                        <div className={`w-14 h-14 rounded-xl ${config.color} flex items-center justify-center text-white text-2xl shadow-lg`}>
+                          {config.icon}
+                        </div>
+                        <div className="text-3xl font-bold text-gray-800">{items.length}</div>
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-3">{category}</h3>
+                      <h3 className="text-xl font-bold text-gray-800 mb-3">{category}</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/70">Idéer:</span>
-                          <span className="text-white font-semibold">{statusCounts['Idé'] || 0}</span>
+                          <span className="text-gray-600">Idéer:</span>
+                          <span className="font-semibold text-gray-800">{statusCounts['Idé'] || 0}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/70">Planlagt:</span>
-                          <span className="text-white font-semibold">{statusCounts['Planlagt'] || 0}</span>
+                          <span className="text-gray-600">Planlagt:</span>
+                          <span className="font-semibold text-gray-800">{statusCounts['Planlagt'] || 0}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/70">Afholdt:</span>
-                          <span className="text-white font-semibold">{statusCounts['Afholdt'] || 0}</span>
+                          <span className="text-gray-600">Afholdt:</span>
+                          <span className="font-semibold text-gray-800">{statusCounts['Afholdt'] || 0}</span>
                         </div>
                       </div>
                     </div>
@@ -603,24 +645,24 @@
             {(view === 'all' || view === 'category') && (
               <div className="fade-in">
                 {/* Filters */}
-                <div className="glass rounded-2xl p-6 mb-6">
+                <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-xl p-5 mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-white">
+                    <h3 className="text-xl font-bold text-gray-800">
                       {view === 'all' ? '🔍 Alle ideer' : `${categories[selectedCategory]?.icon} ${selectedCategory}`}
                     </h3>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setDisplayMode('cards')}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          displayMode === 'cards' ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'
+                        className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                          displayMode === 'cards' ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         📇 Cards
                       </button>
                       <button
                         onClick={() => setDisplayMode('list')}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          displayMode === 'list' ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'
+                        className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                          displayMode === 'list' ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         📋 Liste
@@ -634,13 +676,13 @@
                       placeholder="🔍 Søg..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     />
                     
                     <select
                       value={filters.status}
                       onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     >
                       <option value="all">Alle statusser</option>
                       <option value="Idé">Idé</option>
@@ -652,7 +694,7 @@
                       <select
                         value={filters.category}
                         onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                        className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                        className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                       >
                         <option value="all">Alle kategorier</option>
                         {Object.keys(categories).map(cat => (
@@ -664,7 +706,7 @@
                     <select
                       value={filters.speaker}
                       onChange={(e) => setFilters({ ...filters, speaker: e.target.value })}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     >
                       <option value="all">Alle oplægsholdere</option>
                       {uniqueSpeakers.map(speaker => (
@@ -677,7 +719,7 @@
                     <select
                       value={filters.target}
                       onChange={(e) => setFilters({ ...filters, target: e.target.value })}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     >
                       <option value="all">Alle målgrupper</option>
                       {uniqueTargets.map(target => (
@@ -689,14 +731,14 @@
                       type="date"
                       value={filters.dateFrom}
                       onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     />
                     
                     <input
                       type="date"
                       value={filters.dateTo}
                       onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
                     />
                   </div>
 
@@ -707,17 +749,17 @@
                           setFilters({ status: 'all', category: 'all', speaker: 'all', target: 'all', dateFrom: '', dateTo: '' });
                           setSearchTerm('');
                         }}
-                        className="px-4 py-2 text-sm text-white/80 hover:text-white font-medium"
+                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium"
                       >
                         🔄 Nulstil filtre
                       </button>
-                      <span className="text-white/80 text-sm py-2">
+                      <span className="text-gray-600 text-sm py-2">
                         Viser {filteredItems.length} af {view === 'all' ? allItems.length : (data[selectedCategory] || []).length} ideer
                       </span>
                     </div>
                     <button
                       onClick={() => setShowAddForm(true)}
-                      className="px-6 py-3 rounded-xl bg-white text-purple-600 font-semibold hover:shadow-lg transition-all"
+                      className="btn-hk"
                     >
                       ➕ Tilføj ny idé
                     </button>
@@ -728,7 +770,7 @@
                 {displayMode === 'cards' && (
                   <div className="grid grid-cols-1 gap-4">
                     {filteredItems.map((item) => (
-                      <div key={item.id} className="glass rounded-2xl p-6 card-hover">
+                      <div key={item.id} style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-xl p-5 card-hover">
                         {editingItem === item.id ? (
                           <EditForm
                             item={item}
@@ -746,62 +788,62 @@
                               />
                               <div className="flex-1">
                                 <div className="flex items-start justify-between mb-2">
-                                  <h3 className="text-xl font-bold text-white">{item.title}</h3>
+                                  <h3 className="text-xl font-bold text-gray-800">{item.title}</h3>
                                   <span className={`status-badge status-${item.status.toLowerCase()}`}>
                                     {item.status}
                                   </span>
                                 </div>
                                 {item.description && (
-                                  <p className="text-white/80 mb-3">{item.description}</p>
+                                  <p className="text-gray-600 mb-3">{item.description}</p>
                                 )}
                                 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                                   {view === 'all' && (
                                     <div>
-                                      <div className="text-white/60 text-sm mb-1">Kategori</div>
+                                      <div className="text-gray-500 text-xs mb-1">Kategori</div>
                                       <div className="flex items-center gap-2">
                                         <span className="text-lg">{categories[item.category]?.icon}</span>
-                                        <span className="text-white font-medium">{item.category}</span>
+                                        <span className="font-medium text-gray-800 text-sm">{item.category}</span>
                                       </div>
                                     </div>
                                   )}
                                   {item.speaker && (
                                     <div>
-                                      <div className="text-white/60 text-sm mb-1">Oplægsholder</div>
-                                      <div className="text-white font-medium">{item.speaker}</div>
+                                      <div className="text-gray-500 text-xs mb-1">Oplægsholder</div>
+                                      <div className="font-medium text-gray-800 text-sm">{item.speaker}</div>
                                     </div>
                                   )}
                                   {item.target && (
                                     <div>
-                                      <div className="text-white/60 text-sm mb-1">Målgruppe</div>
-                                      <div className="text-white font-medium">{item.target}</div>
+                                      <div className="text-gray-500 text-xs mb-1">Målgruppe</div>
+                                      <div className="font-medium text-gray-800 text-sm">{item.target}</div>
                                     </div>
                                   )}
                                   <div>
-                                    <div className="text-white/60 text-sm mb-1">Tilføjet</div>
-                                    <div className="text-white font-medium mono text-sm">{item.date}</div>
+                                    <div className="text-gray-500 text-xs mb-1">Tilføjet</div>
+                                    <div className="font-medium text-gray-800 text-sm">{item.date}</div>
                                   </div>
                                 </div>
                                 
                                 {item.notes && (
-                                  <div className="bg-white/10 rounded-xl p-3 mb-4">
-                                    <div className="text-white/60 text-sm mb-1">Noter</div>
-                                    <div className="text-white">{item.notes}</div>
+                                  <div className="bg-yellow-50 rounded-lg p-3 mb-3 border border-yellow-200">
+                                    <div className="text-yellow-800 text-xs font-semibold mb-1">📝 Noter</div>
+                                    <div className="text-gray-700 text-sm">{item.notes}</div>
                                   </div>
                                 )}
                               </div>
                             </div>
                             
-                            <div className="flex gap-2 ml-9 mt-4">
+                            <div className="flex gap-2 ml-9 mt-3">
                               <button
                                 onClick={() => setEditingItem(item.id)}
-                                className="px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all font-medium"
+                                className="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all font-medium text-sm"
                               >
                                 ✏️ Rediger
                               </button>
                               <button
                                 onClick={() => deleteItem(item.category, item.id)}
-                                className="px-4 py-2 rounded-lg bg-red-500/20 text-white hover:bg-red-500/30 transition-all font-medium"
+                                className="px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-all font-medium text-sm"
                               >
                                 🗑️ Slet
                               </button>
@@ -815,10 +857,10 @@
 
                 {/* List View */}
                 {displayMode === 'list' && (
-                  <div className="glass-white rounded-2xl overflow-hidden">
+                  <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                        <thead style={{background: 'linear-gradient(135deg, #00B8D4 0%, #0066CC 100%)'}}>
                           <tr>
                             <th className="px-4 py-3 text-left">
                               <input
@@ -851,7 +893,6 @@
                                   checked={selectedItems.has(item.id)}
                                   onChange={() => toggleSelectItem(item.id)}
                                   className="checkbox-custom"
-                                  style={{borderColor: '#667eea'}}
                                 />
                               </td>
                               <td className="px-4 py-3">
@@ -873,7 +914,7 @@
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-700">{item.speaker || '-'}</td>
                               <td className="px-4 py-3 text-sm text-gray-700">{item.target || '-'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700 mono">{item.date}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{item.date}</td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-1">
                                   <button
@@ -900,26 +941,27 @@
                     {filteredItems.length === 0 && (
                       <div className="p-12 text-center">
                         <div className="text-6xl mb-4">🔍</div>
-                        <p className="text-gray-600 text-xl">Ingen resultater fundet</p>
+                        <p className="text-gray-600 text-lg">Ingen resultater fundet</p>
                       </div>
                     )}
                   </div>
                 )}
 
                 {filteredItems.length === 0 && displayMode === 'cards' && (
-                  <div className="glass rounded-2xl p-12 text-center">
+                  <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-xl p-12 text-center">
                     <div className="text-6xl mb-4">🔍</div>
-                    <p className="text-white text-xl">Ingen resultater fundet</p>
+                    <p className="text-gray-600 text-xl">Ingen resultater fundet</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Add Form Modal */}
+            {/* Modals - fortsætter i næste del... */}
+            
             {showAddForm && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-                <div className="glass-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Tilføj ny idé</h2>
+                <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Tilføj ny idé</h2>
                   <AddForm
                     categories={Object.keys(categories)}
                     defaultCategory={selectedCategory}
@@ -930,11 +972,10 @@
               </div>
             )}
 
-            {/* New Category Modal */}
             {showNewCategoryModal && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-                <div className="glass-white rounded-3xl p-8 max-w-lg w-full">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Opret ny kategori</h2>
+                <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-2xl p-8 max-w-lg w-full">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Opret ny kategori</h2>
                   <NewCategoryForm
                     onSave={addCategory}
                     onCancel={() => setShowNewCategoryModal(false)}
@@ -943,17 +984,16 @@
               </div>
             )}
 
-            {/* Move Items Modal */}
             {showMoveModal && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-                <div className="glass-white rounded-3xl p-8 max-w-lg w-full">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Flyt {selectedItems.size} ideer til kategori</h2>
+                <div style={{background: 'white', border: '1px solid #e5e7eb'}} className="rounded-2xl p-8 max-w-lg w-full">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Flyt {selectedItems.size} ideer til kategori</h2>
                   <div className="space-y-3">
                     {Object.keys(categories).map(cat => (
                       <button
                         key={cat}
                         onClick={() => moveSelectedItems(cat)}
-                        className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+                        className="w-full p-4 rounded-lg border-2 border-gray-200 hover:border-cyan-500 hover:bg-cyan-50 transition-all text-left"
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{categories[cat].icon}</span>
@@ -963,7 +1003,7 @@
                     ))}
                     <button
                       onClick={() => setShowMoveModal(false)}
-                      className="w-full px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+                      className="w-full btn-secondary"
                     >
                       Annuller
                     </button>
@@ -980,41 +1020,41 @@
       const [formData, setFormData] = useState(item);
 
       return (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Titel"
           />
           <input
             type="text"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Beskrivelse"
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
               value={formData.speaker}
               onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+              className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
               placeholder="Oplægsholder"
             />
             <input
               type="text"
               value={formData.target}
               onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+              className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
               placeholder="Målgruppe"
             />
           </div>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
           >
             <option value="Idé">Idé</option>
             <option value="Planlagt">Planlagt</option>
@@ -1023,20 +1063,20 @@
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Noter"
-            rows="3"
+            rows="2"
           />
           <div className="flex gap-2">
             <button
               onClick={() => onSave(formData)}
-              className="flex-1 px-6 py-3 rounded-xl bg-white text-purple-600 font-semibold hover:shadow-lg transition-all"
+              className="flex-1 btn-hk"
             >
               💾 Gem
             </button>
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-all"
+              className="btn-secondary"
             >
               Annuller
             </button>
@@ -1061,7 +1101,7 @@
           <select
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
           >
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
@@ -1071,36 +1111,36 @@
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Titel *"
           />
           <input
             type="text"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Beskrivelse"
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
               value={formData.speaker}
               onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+              className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
               placeholder="Oplægsholder"
             />
             <input
               type="text"
               value={formData.target}
               onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+              className="px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
               placeholder="Målgruppe"
             />
           </div>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
           >
             <option value="Idé">Idé</option>
             <option value="Planlagt">Planlagt</option>
@@ -1109,21 +1149,21 @@
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Noter"
-            rows="3"
+            rows="2"
           />
           <div className="flex gap-2">
             <button
               onClick={() => formData.title && onSave(formData.category, formData)}
               disabled={!formData.title}
-              className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 btn-hk disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ➕ Tilføj
             </button>
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+              className="btn-secondary"
             >
               Annuller
             </button>
@@ -1141,20 +1181,20 @@
             type="text"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-cyan-500 transition-all"
             placeholder="Kategorinavn (fx 'Efterår 2026')"
           />
           <div className="flex gap-2">
             <button
               onClick={() => categoryName && onSave(categoryName)}
               disabled={!categoryName}
-              className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 btn-hk disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ✨ Opret kategori
             </button>
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+              className="btn-secondary"
             >
               Annuller
             </button>
