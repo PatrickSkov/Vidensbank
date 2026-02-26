@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webinar Vidensbank</title>
+  <title>HK Webinar Vidensbank</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -22,6 +22,11 @@
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .glass-white {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
     .card-hover {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -46,9 +51,68 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .status-idea { background: #FEF3C7; color: #92400E; }
-    .status-planned { background: #DBEAFE; color: #1E40AF; }
-    .status-completed { background: #D1FAE5; color: #065F46; }
+    .status-idé { background: #FEF3C7; color: #92400E; }
+    .status-planlagt { background: #DBEAFE; color: #1E40AF; }
+    .status-afholdt { background: #D1FAE5; color: #065F46; }
+    .checkbox-custom {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .checkbox-custom:checked {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+    }
+    .checkbox-custom:checked::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+    .table-row {
+      transition: all 0.2s;
+    }
+    .table-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
   </style>
 </head>
 <body>
@@ -188,12 +252,24 @@
 
     function App() {
       const [data, setData] = useState({});
+      const [categories, setCategories] = useState(CATEGORIES);
       const [view, setView] = useState('overview');
       const [selectedCategory, setSelectedCategory] = useState(null);
+      const [displayMode, setDisplayMode] = useState('cards');
       const [searchTerm, setSearchTerm] = useState('');
-      const [filterStatus, setFilterStatus] = useState('all');
+      const [filters, setFilters] = useState({
+        status: 'all',
+        category: 'all',
+        speaker: 'all',
+        target: 'all',
+        dateFrom: '',
+        dateTo: ''
+      });
+      const [selectedItems, setSelectedItems] = useState(new Set());
       const [editingItem, setEditingItem] = useState(null);
       const [showAddForm, setShowAddForm] = useState(false);
+      const [showNewCategoryModal, setShowNewCategoryModal] = useState(false);
+      const [showMoveModal, setShowMoveModal] = useState(false);
       const [loading, setLoading] = useState(true);
 
       useEffect(() => {
@@ -202,52 +278,94 @@
 
       const loadData = async () => {
         try {
-          // Check if window.storage is available (Claude artifact)
           if (window.storage && typeof window.storage.get === 'function') {
-            const result = await window.storage.get('webinar-data', true);
-            if (result && result.value) {
-              setData(JSON.parse(result.value));
+            const dataResult = await window.storage.get('webinar-data-v2', true);
+            const catResult = await window.storage.get('webinar-categories', true);
+            
+            if (dataResult && dataResult.value) {
+              setData(JSON.parse(dataResult.value));
             } else {
               setData(INITIAL_DATA);
-              await window.storage.set('webinar-data', JSON.stringify(INITIAL_DATA), true);
+              await window.storage.set('webinar-data-v2', JSON.stringify(INITIAL_DATA), true);
+            }
+            
+            if (catResult && catResult.value) {
+              setCategories(JSON.parse(catResult.value));
+            } else {
+              await window.storage.set('webinar-categories', JSON.stringify(CATEGORIES), true);
             }
           } else {
-            // Fallback to localStorage for standalone usage
-            const stored = localStorage.getItem('webinar-data');
-            if (stored) {
-              setData(JSON.parse(stored));
+            const storedData = localStorage.getItem('webinar-data-v2');
+            const storedCats = localStorage.getItem('webinar-categories');
+            
+            if (storedData) {
+              setData(JSON.parse(storedData));
             } else {
               setData(INITIAL_DATA);
-              localStorage.setItem('webinar-data', JSON.stringify(INITIAL_DATA));
+              localStorage.setItem('webinar-data-v2', JSON.stringify(INITIAL_DATA));
+            }
+            
+            if (storedCats) {
+              setCategories(JSON.parse(storedCats));
+            } else {
+              localStorage.setItem('webinar-categories', JSON.stringify(CATEGORIES));
             }
           }
         } catch (error) {
           console.error('Error loading data:', error);
           setData(INITIAL_DATA);
-          try {
-            if (window.storage && typeof window.storage.set === 'function') {
-              await window.storage.set('webinar-data', JSON.stringify(INITIAL_DATA), true);
-            } else {
-              localStorage.setItem('webinar-data', JSON.stringify(INITIAL_DATA));
-            }
-          } catch (saveError) {
-            console.error('Error saving initial data:', saveError);
-          }
+          setCategories(CATEGORIES);
         }
         setLoading(false);
       };
 
-      const saveData = async (newData) => {
+      const saveData = async (newData, newCategories) => {
         setData(newData);
+        if (newCategories) setCategories(newCategories);
+        
         try {
           if (window.storage && typeof window.storage.set === 'function') {
-            await window.storage.set('webinar-data', JSON.stringify(newData), true);
+            await window.storage.set('webinar-data-v2', JSON.stringify(newData), true);
+            if (newCategories) {
+              await window.storage.set('webinar-categories', JSON.stringify(newCategories), true);
+            }
           } else {
-            localStorage.setItem('webinar-data', JSON.stringify(newData));
+            localStorage.setItem('webinar-data-v2', JSON.stringify(newData));
+            if (newCategories) {
+              localStorage.setItem('webinar-categories', JSON.stringify(newCategories));
+            }
           }
         } catch (error) {
           console.error('Error saving data:', error);
         }
+      };
+
+      const addCategory = (categoryName) => {
+        const newCategories = {
+          ...categories,
+          [categoryName]: { color: 'from-indigo-400 to-purple-500', icon: '📁' }
+        };
+        const newData = { ...data, [categoryName]: [] };
+        saveData(newData, newCategories);
+        setShowNewCategoryModal(false);
+      };
+
+      const moveSelectedItems = (targetCategory) => {
+        const newData = { ...data };
+        
+        Object.keys(newData).forEach(cat => {
+          const itemsToMove = newData[cat].filter(item => selectedItems.has(item.id));
+          const remainingItems = newData[cat].filter(item => !selectedItems.has(item.id));
+          
+          if (itemsToMove.length > 0) {
+            newData[cat] = remainingItems;
+            newData[targetCategory] = [...(newData[targetCategory] || []), ...itemsToMove];
+          }
+        });
+        
+        saveData(newData);
+        setSelectedItems(new Set());
+        setShowMoveModal(false);
       };
 
       const addItem = async (category, item) => {
@@ -275,21 +393,49 @@
         }
       };
 
-      const stats = useMemo(() => {
-        const totalIdeas = Object.values(data).flat().length;
-        const byStatus = Object.values(data).flat().reduce((acc, item) => {
-          acc[item.status] = (acc[item.status] || 0) + 1;
-          return acc;
-        }, {});
-        return { totalIdeas, byStatus };
+      const toggleSelectItem = (id) => {
+        const newSelected = new Set(selectedItems);
+        if (newSelected.has(id)) {
+          newSelected.delete(id);
+        } else {
+          newSelected.add(id);
+        }
+        setSelectedItems(newSelected);
+      };
+
+      const allItems = useMemo(() => {
+        return Object.entries(data).flatMap(([category, items]) => 
+          items.map(item => ({ ...item, category }))
+        );
       }, [data]);
 
       const filteredItems = useMemo(() => {
-        if (!selectedCategory) return [];
-        let items = data[selectedCategory] || [];
+        let items = view === 'all' ? allItems : 
+                    selectedCategory ? (data[selectedCategory] || []).map(item => ({ ...item, category: selectedCategory })) : 
+                    [];
         
-        if (filterStatus !== 'all') {
-          items = items.filter(item => item.status === filterStatus);
+        if (filters.status !== 'all') {
+          items = items.filter(item => item.status === filters.status);
+        }
+        
+        if (filters.category !== 'all') {
+          items = items.filter(item => item.category === filters.category);
+        }
+        
+        if (filters.speaker !== 'all') {
+          items = items.filter(item => item.speaker === filters.speaker);
+        }
+        
+        if (filters.target !== 'all') {
+          items = items.filter(item => item.target === filters.target);
+        }
+        
+        if (filters.dateFrom) {
+          items = items.filter(item => item.date >= filters.dateFrom);
+        }
+        
+        if (filters.dateTo) {
+          items = items.filter(item => item.date <= filters.dateTo);
         }
         
         if (searchTerm) {
@@ -297,12 +443,31 @@
           items = items.filter(item => 
             item.title.toLowerCase().includes(term) ||
             item.description.toLowerCase().includes(term) ||
-            item.speaker.toLowerCase().includes(term)
+            item.speaker.toLowerCase().includes(term) ||
+            item.target.toLowerCase().includes(term) ||
+            item.notes.toLowerCase().includes(term)
           );
         }
         
         return items;
-      }, [data, selectedCategory, filterStatus, searchTerm]);
+      }, [data, view, selectedCategory, filters, searchTerm, allItems]);
+
+      const uniqueSpeakers = useMemo(() => {
+        return [...new Set(allItems.map(item => item.speaker).filter(Boolean))].sort();
+      }, [allItems]);
+
+      const uniqueTargets = useMemo(() => {
+        return [...new Set(allItems.map(item => item.target).filter(Boolean))].sort();
+      }, [allItems]);
+
+      const stats = useMemo(() => {
+        const totalIdeas = allItems.length;
+        const byStatus = allItems.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {});
+        return { totalIdeas, byStatus };
+      }, [allItems]);
 
       if (loading) {
         return (
@@ -329,9 +494,9 @@
               </div>
               
               {/* Navigation */}
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-wrap gap-3 mt-6">
                 <button
-                  onClick={() => { setView('overview'); setSelectedCategory(null); }}
+                  onClick={() => { setView('overview'); setSelectedCategory(null); setSelectedItems(new Set()); }}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                     view === 'overview' 
                       ? 'bg-white text-purple-600 shadow-lg' 
@@ -340,26 +505,63 @@
                 >
                   📊 Overblik
                 </button>
-                {Object.keys(CATEGORIES).map(cat => (
+                <button
+                  onClick={() => { setView('all'); setSelectedCategory(null); setSelectedItems(new Set()); }}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                    view === 'all' 
+                      ? 'bg-white text-purple-600 shadow-lg' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  🔍 Alle ideer
+                </button>
+                {Object.keys(categories).map(cat => (
                   <button
                     key={cat}
-                    onClick={() => { setView('category'); setSelectedCategory(cat); }}
+                    onClick={() => { setView('category'); setSelectedCategory(cat); setSelectedItems(new Set()); }}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                       selectedCategory === cat 
                         ? 'bg-white text-purple-600 shadow-lg' 
                         : 'bg-white/20 text-white hover:bg-white/30'
                     }`}
                   >
-                    {CATEGORIES[cat].icon} {cat}
+                    {categories[cat].icon} {cat}
                   </button>
                 ))}
+                <button
+                  onClick={() => setShowNewCategoryModal(true)}
+                  className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:shadow-lg transition-all"
+                >
+                  ➕ Ny kategori
+                </button>
               </div>
+
+              {/* Selection toolbar */}
+              {selectedItems.size > 0 && (
+                <div className="mt-4 p-4 bg-white/20 rounded-xl flex items-center justify-between">
+                  <span className="font-semibold text-white">{selectedItems.size} ideer valgt</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowMoveModal(true)}
+                      className="px-6 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:shadow-lg transition-all"
+                    >
+                      📁 Flyt til kategori
+                    </button>
+                    <button
+                      onClick={() => setSelectedItems(new Set())}
+                      className="px-6 py-2 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-all"
+                    >
+                      Ryd valg
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Overview */}
             {view === 'overview' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
-                {Object.entries(CATEGORIES).map(([category, config]) => {
+                {Object.entries(categories).map(([category, config]) => {
                   const items = data[category] || [];
                   const statusCounts = items.reduce((acc, item) => {
                     acc[item.status] = (acc[item.status] || 0) + 1;
@@ -397,22 +599,47 @@
               </div>
             )}
 
-            {/* Category View */}
-            {view === 'category' && selectedCategory && (
+            {/* All Items / Category View */}
+            {(view === 'all' || view === 'category') && (
               <div className="fade-in">
                 {/* Filters */}
                 <div className="glass rounded-2xl p-6 mb-6">
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white">
+                      {view === 'all' ? '🔍 Alle ideer' : `${categories[selectedCategory]?.icon} ${selectedCategory}`}
+                    </h3>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setDisplayMode('cards')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          displayMode === 'cards' ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'
+                        }`}
+                      >
+                        📇 Cards
+                      </button>
+                      <button
+                        onClick={() => setDisplayMode('list')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          displayMode === 'list' ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'
+                        }`}
+                      >
+                        📋 Liste
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <input
                       type="text"
                       placeholder="🔍 Søg..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 min-w-[200px] px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
                     />
+                    
                     <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
+                      value={filters.status}
+                      onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                       className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
                     >
                       <option value="all">Alle statusser</option>
@@ -420,6 +647,74 @@
                       <option value="Planlagt">Planlagt</option>
                       <option value="Afholdt">Afholdt</option>
                     </select>
+                    
+                    {view === 'all' && (
+                      <select
+                        value={filters.category}
+                        onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                        className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                      >
+                        <option value="all">Alle kategorier</option>
+                        {Object.keys(categories).map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    )}
+                    
+                    <select
+                      value={filters.speaker}
+                      onChange={(e) => setFilters({ ...filters, speaker: e.target.value })}
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                    >
+                      <option value="all">Alle oplægsholdere</option>
+                      {uniqueSpeakers.map(speaker => (
+                        <option key={speaker} value={speaker}>{speaker}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <select
+                      value={filters.target}
+                      onChange={(e) => setFilters({ ...filters, target: e.target.value })}
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                    >
+                      <option value="all">Alle målgrupper</option>
+                      {uniqueTargets.map(target => (
+                        <option key={target} value={target}>{target}</option>
+                      ))}
+                    </select>
+                    
+                    <input
+                      type="date"
+                      value={filters.dateFrom}
+                      onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                    />
+                    
+                    <input
+                      type="date"
+                      value={filters.dateTo}
+                      onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setFilters({ status: 'all', category: 'all', speaker: 'all', target: 'all', dateFrom: '', dateTo: '' });
+                          setSearchTerm('');
+                        }}
+                        className="px-4 py-2 text-sm text-white/80 hover:text-white font-medium"
+                      >
+                        🔄 Nulstil filtre
+                      </button>
+                      <span className="text-white/80 text-sm py-2">
+                        Viser {filteredItems.length} af {view === 'all' ? allItems.length : (data[selectedCategory] || []).length} ideer
+                      </span>
+                    </div>
                     <button
                       onClick={() => setShowAddForm(true)}
                       className="px-6 py-3 rounded-xl bg-white text-purple-600 font-semibold hover:shadow-lg transition-all"
@@ -429,77 +724,189 @@
                   </div>
                 </div>
 
-                {/* Items Grid */}
-                <div className="grid grid-cols-1 gap-4">
-                  {filteredItems.map((item) => (
-                    <div key={item.id} className="glass rounded-2xl p-6 card-hover">
-                      {editingItem === item.id ? (
-                        <EditForm
-                          item={item}
-                          onSave={(updates) => updateItem(selectedCategory, item.id, updates)}
-                          onCancel={() => setEditingItem(null)}
-                        />
-                      ) : (
-                        <div>
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                              {item.description && (
-                                <p className="text-white/80 mb-2">{item.description}</p>
-                              )}
-                            </div>
-                            <span className={`status-badge status-${item.status.toLowerCase()}`}>
-                              {item.status}
-                            </span>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            {item.speaker && (
-                              <div>
-                                <div className="text-white/60 text-sm mb-1">Oplægsholder</div>
-                                <div className="text-white font-medium">{item.speaker}</div>
+                {/* Cards View */}
+                {displayMode === 'cards' && (
+                  <div className="grid grid-cols-1 gap-4">
+                    {filteredItems.map((item) => (
+                      <div key={item.id} className="glass rounded-2xl p-6 card-hover">
+                        {editingItem === item.id ? (
+                          <EditForm
+                            item={item}
+                            onSave={(updates) => updateItem(item.category, item.id, updates)}
+                            onCancel={() => setEditingItem(null)}
+                          />
+                        ) : (
+                          <div>
+                            <div className="flex items-start gap-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.has(item.id)}
+                                onChange={() => toggleSelectItem(item.id)}
+                                className="checkbox-custom mt-1"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h3 className="text-xl font-bold text-white">{item.title}</h3>
+                                  <span className={`status-badge status-${item.status.toLowerCase()}`}>
+                                    {item.status}
+                                  </span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-white/80 mb-3">{item.description}</p>
+                                )}
+                                
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                  {view === 'all' && (
+                                    <div>
+                                      <div className="text-white/60 text-sm mb-1">Kategori</div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg">{categories[item.category]?.icon}</span>
+                                        <span className="text-white font-medium">{item.category}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {item.speaker && (
+                                    <div>
+                                      <div className="text-white/60 text-sm mb-1">Oplægsholder</div>
+                                      <div className="text-white font-medium">{item.speaker}</div>
+                                    </div>
+                                  )}
+                                  {item.target && (
+                                    <div>
+                                      <div className="text-white/60 text-sm mb-1">Målgruppe</div>
+                                      <div className="text-white font-medium">{item.target}</div>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="text-white/60 text-sm mb-1">Tilføjet</div>
+                                    <div className="text-white font-medium mono text-sm">{item.date}</div>
+                                  </div>
+                                </div>
+                                
+                                {item.notes && (
+                                  <div className="bg-white/10 rounded-xl p-3 mb-4">
+                                    <div className="text-white/60 text-sm mb-1">Noter</div>
+                                    <div className="text-white">{item.notes}</div>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {item.target && (
-                              <div>
-                                <div className="text-white/60 text-sm mb-1">Målgruppe</div>
-                                <div className="text-white font-medium">{item.target}</div>
-                              </div>
-                            )}
-                            <div>
-                              <div className="text-white/60 text-sm mb-1">Tilføjet</div>
-                              <div className="text-white font-medium mono text-sm">{item.date}</div>
+                            </div>
+                            
+                            <div className="flex gap-2 ml-9 mt-4">
+                              <button
+                                onClick={() => setEditingItem(item.id)}
+                                className="px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all font-medium"
+                              >
+                                ✏️ Rediger
+                              </button>
+                              <button
+                                onClick={() => deleteItem(item.category, item.id)}
+                                className="px-4 py-2 rounded-lg bg-red-500/20 text-white hover:bg-red-500/30 transition-all font-medium"
+                              >
+                                🗑️ Slet
+                              </button>
                             </div>
                           </div>
-                          
-                          {item.notes && (
-                            <div className="bg-white/10 rounded-xl p-3 mb-4">
-                              <div className="text-white/60 text-sm mb-1">Noter</div>
-                              <div className="text-white">{item.notes}</div>
-                            </div>
-                          )}
-                          
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setEditingItem(item.id)}
-                              className="px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all font-medium"
-                            >
-                              ✏️ Rediger
-                            </button>
-                            <button
-                              onClick={() => deleteItem(selectedCategory, item.id)}
-                              className="px-4 py-2 rounded-lg bg-red-500/20 text-white hover:bg-red-500/30 transition-all font-medium"
-                            >
-                              🗑️ Slet
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                {filteredItems.length === 0 && (
+                {/* List View */}
+                {displayMode === 'list' && (
+                  <div className="glass-white rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                          <tr>
+                            <th className="px-4 py-3 text-left">
+                              <input
+                                type="checkbox"
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedItems(new Set(filteredItems.map(i => i.id)));
+                                  } else {
+                                    setSelectedItems(new Set());
+                                  }
+                                }}
+                                className="checkbox-custom"
+                              />
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Titel</th>
+                            {view === 'all' && <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Kategori</th>}
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Oplægsholder</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Målgruppe</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Dato</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Handlinger</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredItems.map((item, idx) => (
+                            <tr key={item.id} className={`table-row border-t border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                              <td className="px-4 py-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.has(item.id)}
+                                  onChange={() => toggleSelectItem(item.id)}
+                                  className="checkbox-custom"
+                                  style={{borderColor: '#667eea'}}
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="font-semibold text-gray-800">{item.title}</div>
+                                {item.description && <div className="text-sm text-gray-600">{item.description}</div>}
+                              </td>
+                              {view === 'all' && (
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{categories[item.category]?.icon}</span>
+                                    <span className="text-sm font-medium text-gray-700">{item.category}</span>
+                                  </div>
+                                </td>
+                              )}
+                              <td className="px-4 py-3">
+                                <span className={`status-badge status-${item.status.toLowerCase()}`}>
+                                  {item.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{item.speaker || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{item.target || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700 mono">{item.date}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => setEditingItem(item.id)}
+                                    className="p-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all"
+                                    title="Rediger"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() => deleteItem(item.category, item.id)}
+                                    className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-all"
+                                    title="Slet"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {filteredItems.length === 0 && (
+                      <div className="p-12 text-center">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <p className="text-gray-600 text-xl">Ingen resultater fundet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {filteredItems.length === 0 && displayMode === 'cards' && (
                   <div className="glass rounded-2xl p-12 text-center">
                     <div className="text-6xl mb-4">🔍</div>
                     <p className="text-white text-xl">Ingen resultater fundet</p>
@@ -511,13 +918,56 @@
             {/* Add Form Modal */}
             {showAddForm && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-                <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                  <h2 className="text-3xl font-bold text-purple-600 mb-6">Tilføj ny idé</h2>
+                <div className="glass-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Tilføj ny idé</h2>
                   <AddForm
-                    category={selectedCategory}
-                    onSave={(item) => addItem(selectedCategory, item)}
+                    categories={Object.keys(categories)}
+                    defaultCategory={selectedCategory}
+                    onSave={(category, item) => addItem(category, item)}
                     onCancel={() => setShowAddForm(false)}
                   />
+                </div>
+              </div>
+            )}
+
+            {/* New Category Modal */}
+            {showNewCategoryModal && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+                <div className="glass-white rounded-3xl p-8 max-w-lg w-full">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Opret ny kategori</h2>
+                  <NewCategoryForm
+                    onSave={addCategory}
+                    onCancel={() => setShowNewCategoryModal(false)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Move Items Modal */}
+            {showMoveModal && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+                <div className="glass-white rounded-3xl p-8 max-w-lg w-full">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Flyt {selectedItems.size} ideer til kategori</h2>
+                  <div className="space-y-3">
+                    {Object.keys(categories).map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => moveSelectedItems(cat)}
+                        className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{categories[cat].icon}</span>
+                          <span className="font-semibold text-gray-800">{cat}</span>
+                        </div>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setShowMoveModal(false)}
+                      className="w-full px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+                    >
+                      Annuller
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -595,30 +1045,40 @@
       );
     }
 
-    function AddForm({ category, onSave, onCancel }) {
+    function AddForm({ categories, defaultCategory, onSave, onCancel }) {
       const [formData, setFormData] = useState({
         title: '',
         description: '',
         target: '',
         speaker: '',
         status: 'Idé',
-        notes: ''
+        notes: '',
+        category: defaultCategory || categories[0]
       });
 
       return (
         <div className="space-y-4">
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
             placeholder="Titel *"
           />
           <input
             type="text"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
             placeholder="Beskrivelse"
           />
           <div className="grid grid-cols-2 gap-4">
@@ -626,21 +1086,21 @@
               type="text"
               value={formData.speaker}
               onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+              className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
               placeholder="Oplægsholder"
             />
             <input
               type="text"
               value={formData.target}
               onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+              className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
               placeholder="Målgruppe"
             />
           </div>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
           >
             <option value="Idé">Idé</option>
             <option value="Planlagt">Planlagt</option>
@@ -649,17 +1109,48 @@
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
             placeholder="Noter"
             rows="3"
           />
           <div className="flex gap-2">
             <button
-              onClick={() => formData.title && onSave(formData)}
+              onClick={() => formData.title && onSave(formData.category, formData)}
               disabled={!formData.title}
-              className="flex-1 px-6 py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ➕ Tilføj
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+            >
+              Annuller
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function NewCategoryForm({ onSave, onCancel }) {
+      const [categoryName, setCategoryName] = useState('');
+
+      return (
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
+            placeholder="Kategorinavn (fx 'Efterår 2026')"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => categoryName && onSave(categoryName)}
+              disabled={!categoryName}
+              className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ✨ Opret kategori
             </button>
             <button
               onClick={onCancel}
