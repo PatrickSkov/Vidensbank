@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webinar Vidensbank</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .mono {
+      font-family: 'Space Mono', monospace;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-idea { background: #FEF3C7; color: #92400E; }
+    .status-planned { background: #DBEAFE; color: #1E40AF; }
+    .status-completed { background: #D1FAE5; color: #065F46; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const CATEGORIES = {
+      'Arbejdsmiljø': { color: 'from-cyan-400 to-blue-500', icon: '🧘' },
+      'Karriere': { color: 'from-orange-400 to-pink-500', icon: '🚀' },
+      'Uddannelse': { color: 'from-green-400 to-emerald-500', icon: '📚' },
+      'Tech': { color: 'from-purple-400 to-indigo-500', icon: '💻' },
+      'Markedsføring': { color: 'from-red-400 to-rose-500', icon: '📢' },
+      'Andet': { color: 'from-gray-400 to-slate-500', icon: '✨' }
+    };
+
+    const INITIAL_DATA = {
+      'Arbejdsmiljø': [
+        { id: 1, title: 'Mental sundhed på arbejdspladsen', description: 'Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 2, title: 'Multitasking er en myte', description: 'Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 3, title: 'Impostor syndrom', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 4, title: 'Præstationskultur', description: 'fx når nogen skal til eksaminer', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 5, title: 'Fra stress til balance', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 6, title: 'Adfærdsdesign og nudging', description: 'Arbejdsmiljø-ugen', target: '', speaker: 'Sofie fra Bro', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 7, title: 'Personlig Power', description: 'Retorik + præsentationsteknik', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 8, title: 'Værktøjer til det gode arbejdsmiljø', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 9, title: 'Det gode samarbejde', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 10, title: 'Konfliktmægling', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 11, title: 'Hvordan påvirker AI vores faglige identitet?', description: 'AI overtager vores opgaver mv.', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 12, title: 'Drop chefen, behold lederskabet', description: 'Arbejdsmiljø-ugen', target: '', speaker: 'Ann-Christina Matzen Andreasen', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 13, title: 'Skal man tage følelserne med på job?', description: 'Arbejdslivets svære følelser', target: '', speaker: 'Jacob Thorsen', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 14, title: 'Hvordan tackler vi forandringer?', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 15, title: 'Meta kognitiv terapi', description: '', target: '', speaker: 'Maiken Juul', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 16, title: 'HjerneRO', description: 'Arbejdsmiljø-ugen OG fysisk', target: '', speaker: 'Peter Hyldig', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 17, title: 'Bæredygtig velfærdsdesign', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: 'skal hedde noget andet' },
+        { id: 18, title: 'Leve med skjulte sygdomme', description: 'evt endometriose inspiration til at indrette dit arbejdsliv', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 19, title: 'Kropssprog og signaler', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 20, title: 'Kulturforskelle på arbejdspladsen', description: 'Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: 'evt. tre på en dag – med forskellige perspektiver' },
+        { id: 21, title: 'Aldersbashing', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 22, title: 'Minoritet på arbejdspladsen', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 23, title: 'Sorg på arbejdspladsen', description: 'Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 24, title: 'Introvert og/eller ekstrovert', description: 'samarbejdet herimellem', target: '', speaker: 'Camilla Lærke Lærkesen', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 25, title: 'Håndtering af ikke-ordentlig tale', description: 'kundeforhold, Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 26, title: 'Tal ordentligt/pænt', description: 'Arbejdsmiljø-ugen', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' }
+      ],
+      'Karriere': [
+        { id: 27, title: 'Fremtidens karrierer', description: 'brancher i vækst, nye jobprofiler', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 28, title: 'Jobskifte for dig der er i 30erne og 40erne', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 29, title: 'Skriv det ned!', description: 'Lær dig selv bedre at kende gennem skrivning/journaling', target: '', speaker: 'Psykolog Julie Varberg', status: 'Idé', date: '2026-02-26', notes: 'Karriere, uddannelse, jobskifte' }
+      ],
+      'Uddannelse': [
+        { id: 30, title: 'Kompetenceafklaring', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 31, title: 'Projektledelse', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 32, title: 'Eksamensnervøsitet', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 33, title: 'Smag på et fag: regnskab', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 34, title: 'Smag på et fag: markedsføring', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 35, title: 'Søg penge til efteruddannelse', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 36, title: 'Hvilken fond kan du søge', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 37, title: 'Studer til efteruddannelse med NotebookLM + ChatGPT', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 38, title: 'Smag på et fag', description: 'samarbejde med skolerne', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 39, title: 'Kommunikation', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 40, title: 'Offentlig forvaltning', description: 'på akademi og diplomniveau', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 41, title: 'Teknologiforståelse', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 42, title: 'Ledelse og forhandling', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 43, title: 'Organisation / arbejdspsykologi / HR', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 44, title: 'Coaching', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 45, title: 'ESG', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 46, title: 'IT-sikkerhed/programmering/no-code', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 47, title: 'Blanding af AMU-, akademi- og diplomniveau', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 48, title: 'Sådan får du støtte/penge til efteruddannelse', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 49, title: 'RKV', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 50, title: 'Mulighederne inden for AMU', description: 'fx priser, brobygning i akademiuddannelserne mv', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 51, title: 'Gør plads til efteruddannelse', description: 'planlæg efteruddannelse som du planlægger ferie', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' }
+      ],
+      'Tech': [
+        { id: 52, title: 'Canva', description: 'som vi selv holder', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 53, title: 'Figma', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 54, title: 'AI forfra', description: 'nye AI-værktøjer hver gang fx Perplexity osv.', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 55, title: 'No code værktøjer', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 56, title: 'AI / kunstig intelligens', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 57, title: 'AI snake oil', description: 'bog', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 58, title: 'Digital dovenskab', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 59, title: 'Digitaliserings- og AIstrategi', description: 'hvem er lykkedes med det?', target: '', speaker: 'fx Valdemar Osted', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 60, title: 'Byg en agent / GPT', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 61, title: 'Digital dannelse', description: 'hvad skal man reelt kunne i 2026', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 62, title: 'Stress over teknologi', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 63, title: 'Hybrid intelligens', description: '', target: '', speaker: 'jacob sherson', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 64, title: 'Hybridangreb', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 65, title: 'Byg din egen chatbot med Chatbase', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 66, title: 'Excel', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 67, title: 'Data', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 68, title: 'Power automate', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 69, title: 'RPA (intro til/lav din egen)', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 70, title: 'Center for Tracking og Society (KU)', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 71, title: 'Surveillance capitalism', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 72, title: 'Digital detox', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 73, title: 'Visuel kommunikation m. AI', description: 'grafisk facilitering', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' }
+      ],
+      'Markedsføring': [
+        { id: 74, title: 'Hyperpersonlisering', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 75, title: 'Kreativitet & differentiering i støjfyldt marked', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 76, title: 'Employer branding som marketing', description: 'fx Skatteguiden', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 77, title: 'Community-building', description: 'fx Grød med socialruns', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 78, title: 'Social commerce', description: 'købe direkte via sociale medier', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 79, title: 'Omnichannel marketing', description: 'alle kanaler taler ind i samme oplevelse', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 80, title: 'Mikro- og nano influencere', description: 'frem for store influencers', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 81, title: 'Store brands', description: 'fx Royal Unibrew m.fl.', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' }
+      ],
+      'Andet': [
+        { id: 82, title: 'Nudging', description: '', target: '', speaker: 'Sille Krukow', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 83, title: 'Mere bevægelse mindre træthed', description: 'mikrovaner', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 84, title: 'Gig Economy', description: 'ny karriere eller hamsterhjul', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: 'måske mest for de yngre' },
+        { id: 85, title: 'Økonomisk tryghed vs. fleksibilitet', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 86, title: 'Balance i arbejds- og familielivet', description: 'hvordan gør jeg det', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 87, title: 'Remotearbejde, hjemmearbejde', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 88, title: '4-dages arbejdsuge', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 89, title: 'Fleksibilitet vs. pensionsopsparing', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 90, title: 'Visuel kommunikation', description: 'grafisk facilitering', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 91, title: 'Hybridarbejde', description: 'er det stadig en ting?', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 92, title: 'Design thinking', description: 'fx mod AI', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 93, title: 'Medlemsdemokrati', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 94, title: 'Pep talk', description: 'taastrup kommune (DIkonference)', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 95, title: 'Bæredygtig udvikling', description: 'amu kursus', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 96, title: 'Kompetencer til grøn omstilling', description: 'klima indkøb, esg, optimering', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 97, title: 'Bliv ekspert i grøn omstilling', description: 'FNs 17 verdensmål', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 98, title: 'Hvad er overenskomster?', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 99, title: 'Lønforhandling', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 100, title: 'Forstå din lønseddel', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 101, title: 'Det danske arbejdsmarked', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 102, title: 'Rettigheder under graviditet', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 103, title: 'MUS / 1:1', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 104, title: 'APV', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' },
+        { id: 105, title: 'Kompetencefond på engelsk', description: '', target: '', speaker: '', status: 'Idé', date: '2026-02-26', notes: '' }
+      ]
+    };
+
+    function App() {
+      const [data, setData] = useState({});
+      const [view, setView] = useState('overview');
+      const [selectedCategory, setSelectedCategory] = useState(null);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [filterStatus, setFilterStatus] = useState('all');
+      const [editingItem, setEditingItem] = useState(null);
+      const [showAddForm, setShowAddForm] = useState(false);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        loadData();
+      }, []);
+
+      const loadData = async () => {
+        try {
+          // Check if window.storage is available (Claude artifact)
+          if (window.storage && typeof window.storage.get === 'function') {
+            const result = await window.storage.get('webinar-data', true);
+            if (result && result.value) {
+              setData(JSON.parse(result.value));
+            } else {
+              setData(INITIAL_DATA);
+              await window.storage.set('webinar-data', JSON.stringify(INITIAL_DATA), true);
+            }
+          } else {
+            // Fallback to localStorage for standalone usage
+            const stored = localStorage.getItem('webinar-data');
+            if (stored) {
+              setData(JSON.parse(stored));
+            } else {
+              setData(INITIAL_DATA);
+              localStorage.setItem('webinar-data', JSON.stringify(INITIAL_DATA));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          setData(INITIAL_DATA);
+          try {
+            if (window.storage && typeof window.storage.set === 'function') {
+              await window.storage.set('webinar-data', JSON.stringify(INITIAL_DATA), true);
+            } else {
+              localStorage.setItem('webinar-data', JSON.stringify(INITIAL_DATA));
+            }
+          } catch (saveError) {
+            console.error('Error saving initial data:', saveError);
+          }
+        }
+        setLoading(false);
+      };
+
+      const saveData = async (newData) => {
+        setData(newData);
+        try {
+          if (window.storage && typeof window.storage.set === 'function') {
+            await window.storage.set('webinar-data', JSON.stringify(newData), true);
+          } else {
+            localStorage.setItem('webinar-data', JSON.stringify(newData));
+          }
+        } catch (error) {
+          console.error('Error saving data:', error);
+        }
+      };
+
+      const addItem = async (category, item) => {
+        const newData = { ...data };
+        const maxId = Math.max(...Object.values(newData).flat().map(i => i.id), 0);
+        newData[category] = [...(newData[category] || []), { ...item, id: maxId + 1, date: new Date().toISOString().split('T')[0] }];
+        await saveData(newData);
+        setShowAddForm(false);
+      };
+
+      const updateItem = async (category, itemId, updates) => {
+        const newData = { ...data };
+        newData[category] = newData[category].map(item => 
+          item.id === itemId ? { ...item, ...updates } : item
+        );
+        await saveData(newData);
+        setEditingItem(null);
+      };
+
+      const deleteItem = async (category, itemId) => {
+        if (confirm('Er du sikker på at du vil slette denne idé?')) {
+          const newData = { ...data };
+          newData[category] = newData[category].filter(item => item.id !== itemId);
+          await saveData(newData);
+        }
+      };
+
+      const stats = useMemo(() => {
+        const totalIdeas = Object.values(data).flat().length;
+        const byStatus = Object.values(data).flat().reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {});
+        return { totalIdeas, byStatus };
+      }, [data]);
+
+      const filteredItems = useMemo(() => {
+        if (!selectedCategory) return [];
+        let items = data[selectedCategory] || [];
+        
+        if (filterStatus !== 'all') {
+          items = items.filter(item => item.status === filterStatus);
+        }
+        
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          items = items.filter(item => 
+            item.title.toLowerCase().includes(term) ||
+            item.description.toLowerCase().includes(term) ||
+            item.speaker.toLowerCase().includes(term)
+          );
+        }
+        
+        return items;
+      }, [data, selectedCategory, filterStatus, searchTerm]);
+
+      if (loading) {
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-white text-2xl mono">Indlæser...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen p-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="glass rounded-3xl p-8 mb-6 fade-in">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-5xl font-bold text-white mb-2">Webinar Vidensbank</h1>
+                  <p className="text-white/80 text-lg">Faglige arrangementer og webinarer</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-white mono">{stats.totalIdeas}</div>
+                  <div className="text-white/80">ideer i alt</div>
+                </div>
+              </div>
+              
+              {/* Navigation */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => { setView('overview'); setSelectedCategory(null); }}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                    view === 'overview' 
+                      ? 'bg-white text-purple-600 shadow-lg' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  📊 Overblik
+                </button>
+                {Object.keys(CATEGORIES).map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => { setView('category'); setSelectedCategory(cat); }}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                      selectedCategory === cat 
+                        ? 'bg-white text-purple-600 shadow-lg' 
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                  >
+                    {CATEGORIES[cat].icon} {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Overview */}
+            {view === 'overview' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+                {Object.entries(CATEGORIES).map(([category, config]) => {
+                  const items = data[category] || [];
+                  const statusCounts = items.reduce((acc, item) => {
+                    acc[item.status] = (acc[item.status] || 0) + 1;
+                    return acc;
+                  }, {});
+                  
+                  return (
+                    <div
+                      key={category}
+                      onClick={() => { setView('category'); setSelectedCategory(category); }}
+                      className="glass rounded-2xl p-6 cursor-pointer card-hover"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="text-4xl">{config.icon}</div>
+                        <div className="text-3xl font-bold text-white mono">{items.length}</div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3">{category}</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/70">Idéer:</span>
+                          <span className="text-white font-semibold">{statusCounts['Idé'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/70">Planlagt:</span>
+                          <span className="text-white font-semibold">{statusCounts['Planlagt'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/70">Afholdt:</span>
+                          <span className="text-white font-semibold">{statusCounts['Afholdt'] || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Category View */}
+            {view === 'category' && selectedCategory && (
+              <div className="fade-in">
+                {/* Filters */}
+                <div className="glass rounded-2xl p-6 mb-6">
+                  <div className="flex flex-wrap gap-4">
+                    <input
+                      type="text"
+                      placeholder="🔍 Søg..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="flex-1 min-w-[200px] px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+                    />
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+                    >
+                      <option value="all">Alle statusser</option>
+                      <option value="Idé">Idé</option>
+                      <option value="Planlagt">Planlagt</option>
+                      <option value="Afholdt">Afholdt</option>
+                    </select>
+                    <button
+                      onClick={() => setShowAddForm(true)}
+                      className="px-6 py-3 rounded-xl bg-white text-purple-600 font-semibold hover:shadow-lg transition-all"
+                    >
+                      ➕ Tilføj ny idé
+                    </button>
+                  </div>
+                </div>
+
+                {/* Items Grid */}
+                <div className="grid grid-cols-1 gap-4">
+                  {filteredItems.map((item) => (
+                    <div key={item.id} className="glass rounded-2xl p-6 card-hover">
+                      {editingItem === item.id ? (
+                        <EditForm
+                          item={item}
+                          onSave={(updates) => updateItem(selectedCategory, item.id, updates)}
+                          onCancel={() => setEditingItem(null)}
+                        />
+                      ) : (
+                        <div>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                              {item.description && (
+                                <p className="text-white/80 mb-2">{item.description}</p>
+                              )}
+                            </div>
+                            <span className={`status-badge status-${item.status.toLowerCase()}`}>
+                              {item.status}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            {item.speaker && (
+                              <div>
+                                <div className="text-white/60 text-sm mb-1">Oplægsholder</div>
+                                <div className="text-white font-medium">{item.speaker}</div>
+                              </div>
+                            )}
+                            {item.target && (
+                              <div>
+                                <div className="text-white/60 text-sm mb-1">Målgruppe</div>
+                                <div className="text-white font-medium">{item.target}</div>
+                              </div>
+                            )}
+                            <div>
+                              <div className="text-white/60 text-sm mb-1">Tilføjet</div>
+                              <div className="text-white font-medium mono text-sm">{item.date}</div>
+                            </div>
+                          </div>
+                          
+                          {item.notes && (
+                            <div className="bg-white/10 rounded-xl p-3 mb-4">
+                              <div className="text-white/60 text-sm mb-1">Noter</div>
+                              <div className="text-white">{item.notes}</div>
+                            </div>
+                          )}
+                          
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingItem(item.id)}
+                              className="px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all font-medium"
+                            >
+                              ✏️ Rediger
+                            </button>
+                            <button
+                              onClick={() => deleteItem(selectedCategory, item.id)}
+                              className="px-4 py-2 rounded-lg bg-red-500/20 text-white hover:bg-red-500/30 transition-all font-medium"
+                            >
+                              🗑️ Slet
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {filteredItems.length === 0 && (
+                  <div className="glass rounded-2xl p-12 text-center">
+                    <div className="text-6xl mb-4">🔍</div>
+                    <p className="text-white text-xl">Ingen resultater fundet</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Add Form Modal */}
+            {showAddForm && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+                <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <h2 className="text-3xl font-bold text-purple-600 mb-6">Tilføj ny idé</h2>
+                  <AddForm
+                    category={selectedCategory}
+                    onSave={(item) => addItem(selectedCategory, item)}
+                    onCancel={() => setShowAddForm(false)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function EditForm({ item, onSave, onCancel }) {
+      const [formData, setFormData] = useState(item);
+
+      return (
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            placeholder="Titel"
+          />
+          <input
+            type="text"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            placeholder="Beskrivelse"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              value={formData.speaker}
+              onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
+              className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+              placeholder="Oplægsholder"
+            />
+            <input
+              type="text"
+              value={formData.target}
+              onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+              className="px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+              placeholder="Målgruppe"
+            />
+          </div>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white border-2 border-white/30 focus:border-white focus:outline-none"
+          >
+            <option value="Idé">Idé</option>
+            <option value="Planlagt">Planlagt</option>
+            <option value="Afholdt">Afholdt</option>
+          </select>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/60 border-2 border-white/30 focus:border-white focus:outline-none"
+            placeholder="Noter"
+            rows="3"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => onSave(formData)}
+              className="flex-1 px-6 py-3 rounded-xl bg-white text-purple-600 font-semibold hover:shadow-lg transition-all"
+            >
+              💾 Gem
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-all"
+            >
+              Annuller
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function AddForm({ category, onSave, onCancel }) {
+      const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        target: '',
+        speaker: '',
+        status: 'Idé',
+        notes: ''
+      });
+
+      return (
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            placeholder="Titel *"
+          />
+          <input
+            type="text"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            placeholder="Beskrivelse"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              value={formData.speaker}
+              onChange={(e) => setFormData({ ...formData, speaker: e.target.value })}
+              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+              placeholder="Oplægsholder"
+            />
+            <input
+              type="text"
+              value={formData.target}
+              onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+              placeholder="Målgruppe"
+            />
+          </div>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+          >
+            <option value="Idé">Idé</option>
+            <option value="Planlagt">Planlagt</option>
+            <option value="Afholdt">Afholdt</option>
+          </select>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+            placeholder="Noter"
+            rows="3"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => formData.title && onSave(formData)}
+              disabled={!formData.title}
+              className="flex-1 px-6 py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ➕ Tilføj
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+            >
+              Annuller
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
